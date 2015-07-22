@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 uuid_path_re = re.compile(
     '^/[a-f0-9]{,8}-[a-f0-9]{,4}-[a-f0-9]{,4}-[a-f0-9]{,4}-[a-f0-9]{,12}', re.IGNORECASE)
 
+api_path_re = re.compile('^/api/v2/wms/(.*)')
 
 class WMSProxy(object):
 
@@ -28,7 +29,12 @@ class WMSProxy(object):
         return self.handle(req)(environ, start_response)
 
     def handle(self, req):
-        user = req.pop_path()
+        host = req.environ['HTTP_HOST']
+        user = host.split(".",1)[0]
+        api = api_path_re.search(req.path)
+        if api != None:
+            req.environ['SCRIPT_NAME'] = '/api/v2/wms/'
+            req.environ['PATH_INFO'] = '/' + api.groups()[0]
         uuid = None
         if uuid_path_re.match(req.path):
             uuid = req.pop_path()
