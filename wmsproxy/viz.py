@@ -1,6 +1,10 @@
 import requests
 import json
 
+TILER_URL_TEMPLATE = '%(tiler_protocol)s://%(user_name)s.%(tiler_domain)s:%(tiler_port)s/api/v1/map'
+TILE_URL_TEMPLATE = '%(protocol)s://0.%(domain)s/%(user_name)s/api/v1/map/%(layergroupid)s/'
+VIZ_URL_TEMPLATE = 'http://%(user)s.%(domain)s/api/v2/viz/%(uuid)s/viz.json'
+ALL_VIZ_TEMPLATE = 'http://%(user)s.%(domain)s/api/v1/viz/?tag_name=&q=&page=1&type=table&exclude_shared=false&per_page=%(max)s&table_data=false&o%%5Bupdated_at%%5D=desc&exclude_raster=true'
 
 import logging
 log = logging.getLogger(__name__)
@@ -48,8 +52,8 @@ def tile_url(tiler_url, layer_definition, user):
 
     return url, data['last_updated']
 
-def user_uuids(user, max_uuids=5):
-    url = ALL_VIZ_TEMPLATE % {'user': user, 'max': max_uuids}
+def user_uuids(user, max_uuids=50, cartodb_domain='cartodb.com'):
+    url = ALL_VIZ_TEMPLATE % {'user': user, 'max': max_uuids, 'domain': cartodb_domain}
     try:
         resp = requests.get(url)
     except requests.exceptions.RequestException as exc:
@@ -62,8 +66,8 @@ def user_uuids(user, max_uuids=5):
     uuids = [viz['id'] for viz in viz_doc['visualizations'][:max_uuids]]
     return uuids
 
-def tile_params(user, uuid):
-    url = VIZ_URL_TEMPLATE % {'user': user, 'uuid': uuid}
+def tile_params(user, uuid, cartodb_domain='cartodb.com'):
+    url = VIZ_URL_TEMPLATE % {'user': user, 'uuid': uuid, 'domain': cartodb_domain}
     try:
         resp = requests.get(url)
     except requests.exceptions.RequestException as exc:
@@ -125,7 +129,7 @@ if __name__ == '__main__':
 
 
     user = 'gce01'
-    for uuid in user_uuids(user, max_uuids=50):
+    for uuid in user_uuids(user, cartodb_domain='cartodb.com', max_uuids=50):
         try:
             print tile_params(user, uuid)
         except RequestError as ex:

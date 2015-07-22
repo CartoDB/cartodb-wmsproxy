@@ -11,9 +11,10 @@ import logging
 log = logging.getLogger(__name__)
 
 class ConfigCache(object):
-    def __init__(self, cache_dir, max_age_seconds=30*60):
+    def __init__(self, cache_dir, max_age_seconds=30*60, cartodb_domain='cartodb.com'):
         self.cache_dir = cache_dir
         self.max_age_seconds =max_age_seconds
+        self.cartodb_domain = cartodb_domain
 
     def _requires_reconf(self, conf_filename):
         """
@@ -35,16 +36,16 @@ class ConfigCache(object):
                 if self._requires_reconf(conf_filename):
                     log.debug('(re)configure %s for %s', (uuid or "all"), user)
                     if uuid:
-                        params = tile_params(user, uuid)
+                        params = tile_params(user, uuid, self.cartodb_domain)
                         if params is None:
                             return
                         conf = mapproxy_config([params], user=user)
 
                     else:
                         layers = []
-                        for uuid in user_uuids(user, max_uuids=max_uuids):
+                        for uuid in user_uuids(user, max_uuids=max_uuids, cartodb_domain=self.cartodb_domain):
                             try:
-                                params = tile_params(user, uuid)
+                                params = tile_params(user, uuid, self.cartodb_domain)
                                 if params:
                                     layers.append(params)
                                 else:

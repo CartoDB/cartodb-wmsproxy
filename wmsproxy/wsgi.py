@@ -72,8 +72,8 @@ class WMSProxy(object):
         return make_mapproxy_wsgi_app(mapproxy_conf)
 
 
-def make_wsgi_app(config_cache_dir, max_age_seconds=30 * 60):
-    cache = ConfigCache(config_cache_dir, max_age_seconds=max_age_seconds)
+def make_wsgi_app(config_cache_dir, max_age_seconds=30 * 60, cartodb_domain='cartodb.com'):
+    cache = ConfigCache(config_cache_dir, max_age_seconds=max_age_seconds, cartodb_domain=cartodb_domain)
     app = WMSProxy(cache)
 
     return app
