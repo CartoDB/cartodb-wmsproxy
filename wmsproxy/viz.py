@@ -2,7 +2,7 @@ import requests
 import json
 
 TILER_URL_TEMPLATE = '%(tiler_protocol)s://%(user_name)s.%(tiler_domain)s:%(tiler_port)s/api/v1/map'
-TILE_URL_TEMPLATE = '%(protocol)s://0.%(domain)s/%(user_name)s/api/v1/map/%(layergroupid)s/'
+TILE_URL_TEMPLATE = '%(protocol)s://%(domain)s/%(user_name)s/api/v1/map/%(layergroupid)s/'
 VIZ_URL_TEMPLATE = 'http://%(user)s.%(domain)s/api/v2/viz/%(uuid)s/viz.json'
 ALL_VIZ_TEMPLATE = 'http://%(user)s.%(domain)s/api/v1/viz/?tag_name=&q=&page=1&types=table,derived&exclude_shared=false&per_page=%(max)s&table_data=false&o%%5Bupdated_at%%5D=desc&exclude_raster=true'
 
@@ -26,7 +26,7 @@ def layer_definition(layer):
 
     return layer['options']['layer_definition']
 
-def tile_url(tiler_url, layer_definition, user):
+def tile_url(tiler_url, layer_definition, user, protocol='http'):
     try:
         resp = requests.post(
             tiler_url,
@@ -43,9 +43,14 @@ def tile_url(tiler_url, layer_definition, user):
         raise RequestError("unable to query tiler", resp)
 
     data = resp.json()
+
+    if protocol == 'http':
+        domain = '0.' + data['cdn_url'][protocol]
+    else:
+        domain = data['cdn_url'][protocol]
     url = TILE_URL_TEMPLATE % {
-        'protocol': 'http',
-        'domain': data['cdn_url']['http'],
+        'protocol': protocol,
+        'domain': domain,
         'user_name': user,
         'layergroupid': data['layergroupid'],
     }
