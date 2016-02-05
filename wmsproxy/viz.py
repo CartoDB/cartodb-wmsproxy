@@ -1,3 +1,4 @@
+import pystache
 import requests
 import json
 
@@ -127,14 +128,52 @@ def find_utfgrid_info(layer, layer_url):
     for i, l in enumerate(layer['options']['named_map']['layers']):
         tooltip = l.get('tooltip')
         if (tooltip):
-            # TODO: generalize this to work with CartoDB UI toggles by
-            # interpretting the tooltip['fields'] and iterating through the
-            # tooltip "fields"
+            template = _get_utfgrid_template(tooltip)
             utfgrid_url = '{layer_url}{layer_id}/'.format(layer_url=layer_url, layer_id=i+1)
             return {
                 'featureinfo_utfgrid_url': utfgrid_url,
-                'featureinfo_utfgrid_template': tooltip['template'],
+                'featureinfo_utfgrid_template': template,
             }
+
+def _get_utfgrid_template(tooltip):
+    template = tooltip['template']
+
+    # Check the template to see if there is a section named 'fields', and if so
+    # we'll need to pre-process the template to generate a template that can
+    # directly accept the UTFGrid values as a context. This will be a common
+    # case, where the template was defined by the toggles in the infowindow UI
+    parsed = pystache.parse(template)
+    template_nodes = [
+        i.key for i in parsed._parse_tree
+        if getattr(i, 'key', None) == 'fields'
+    ]
+    template_contains_fields = 'fields' in template_nodes
+
+    if not template_contains_fields:
+        return template
+    else:
+        fields = tooltip['fields']
+
+        # merge alternative_names into fields if they have been set with via
+        # "Change title labels" UI
+        alternative_names = tooltip.get('alternative_names', {})
+        for name, alternative_name in alternative_names.iteritems():
+            for field in fields:
+                if field['name'] == name:
+                    field['alternative_name'] = alternative_name
+
+        # render_fields can be plugged into the 'fields' context to output an
+        # single mustache template that will accept utfgrid data
+        render_fields = [
+            {
+                'title': field.get('alternative_name', field['name']),
+                'value': '{{' + field['name'] + '}}',
+            }
+            for field in fields
+        ]
+
+        rendered = pystache.render(tooltip['template'], {'fields': render_fields})
+        return rendered
 
 if __name__ == '__main__':
     viz_urls = [
