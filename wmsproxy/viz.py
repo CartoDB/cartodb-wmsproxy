@@ -143,13 +143,12 @@ def _get_utfgrid_template(tooltip):
     # directly accept the UTFGrid values as a context. This will be a common
     # case, where the template was defined by the toggles in the infowindow UI
     parsed = pystache.parse(template)
-    template_nodes = [
-        i.key for i in parsed._parse_tree
-        if getattr(i, 'key', None) == 'fields'
+    template_sections = [
+        getattr(i, 'key', None)
+        for i in parsed._parse_tree
     ]
-    template_contains_fields = 'fields' in template_nodes
 
-    if not template_contains_fields:
+    if 'fields' not in template_sections:
         return template
     else:
         fields = tooltip['fields']
