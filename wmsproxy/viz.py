@@ -109,11 +109,31 @@ def tile_params(user, uuid, cartodb_domain='cartodb.com'):
             ldef = layer['options']['named_map']['params']
             url, last_updated = tile_url(turl, ldef, user=user)
 
-            return {
+            layer_obj = {
                 'url': url,
                 'last_updated': last_updated,
                 'bounds': bounds,
                 'title': viz_doc['title'],
+            }
+
+            ssl_url, last_updated = tile_url(turl, ldef, user=user, protocol='http')
+            utfgrid_info = find_utfgrid_info(layer, ssl_url)
+            if (utfgrid_info):
+                layer_obj.update(utfgrid_info)
+
+            return layer_obj
+
+def find_utfgrid_info(layer, layer_url):
+    for i, l in enumerate(layer['options']['named_map']['layers']):
+        tooltip = l.get('tooltip')
+        if (tooltip):
+            # TODO: generalize this to work with CartoDB UI toggles by
+            # interpretting the tooltip['fields'] and iterating through the
+            # tooltip "fields"
+            utfgrid_url = '{layer_url}{layer_id}/'.format(layer_url=layer_url, layer_id=i+1)
+            return {
+                'featureinfo_utfgrid_url': utfgrid_url,
+                'featureinfo_utfgrid_template': tooltip['template'],
             }
 
 if __name__ == '__main__':

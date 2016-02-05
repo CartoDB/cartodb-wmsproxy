@@ -6,6 +6,11 @@ from mapproxy.util.fs import write_atomic
 
 def mapproxy_config(layers, user):
     conf = {
+        #'globals': {
+            #'http': {
+                #'ssl_no_cert_checks': True,
+            #},
+        #},
         'services': {
             'wmts': {
                 'md': {'title': 'CartoDB WMTS for %s' % user, },
@@ -42,12 +47,17 @@ def mapproxy_config(layers, user):
             'sources': [name],
         })
 
-        conf['sources'][name] = {
+        source_conf = {
             'type': 'tile',
             'url': layer['url'] + '%(tms_path)s.png',
             'transparent': True,
             'grid': 'webmercator',
         }
+        if layer.get('featureinfo_utfgrid_url'):
+            source_conf['featureinfo_utfgrid_url'] = layer['featureinfo_utfgrid_url'] + '%(tms_path)s.grid.json'
+        if layer.get('featureinfo_utfgrid_template'):
+            source_conf['featureinfo_utfgrid_template'] = layer['featureinfo_utfgrid_template']
+        conf['sources'][name] = source_conf
 
         # TODO
         if False:
