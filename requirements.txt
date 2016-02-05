@@ -1,2 +1,4 @@
 requests==2.2.1
 mapproxy>=1.7.1
+dicttoxml==1.6.6
+pystache==0.5.4
