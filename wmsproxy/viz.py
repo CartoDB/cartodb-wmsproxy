@@ -61,8 +61,10 @@ def user_uuids(user, max_uuids=50, cartodb_domain='cartodb.com'):
     if not resp.ok:
         raise RequestError("unable to retreive viz.json", resp)
 
-    viz_doc = resp.json()
-
+    try:
+        viz_doc = resp.json()
+    except ValueError as e:
+        raise RequestError("Error parsing viz.json", e)
     uuids = [viz['id'] for viz in viz_doc['visualizations'][:max_uuids]]
     return uuids
 
@@ -75,7 +77,10 @@ def tile_params(user, uuid, cartodb_domain='cartodb.com'):
     if not resp.ok:
         raise RequestError("unable to retreive viz.json", resp)
 
-    viz_doc = resp.json()
+    try:
+        viz_doc = resp.json()
+    except ValueError as e:
+        raise RequestError("Error parsing viz.json", e)
 
     bounds = None
     # clip bounds to -180,-90,180,90

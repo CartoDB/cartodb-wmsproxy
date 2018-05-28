@@ -43,16 +43,18 @@ class ConfigCache(object):
 
                     else:
                         layers = []
-                        for uuid in user_uuids(user, max_uuids=max_uuids, cartodb_domain=self.cartodb_domain):
-                            try:
-                                params = tile_params(user, uuid, self.cartodb_domain)
-                                if params:
-                                    layers.append(params)
-                                else:
-                                    log.warn("found no layer for %s %s", user, uuid)
-                            except RequestError as ex:
-                                log.warn("faild to query tiler for %s %s: %s", user, uuid, ex)
-
+                        try:
+                            for uuid in user_uuids(user, max_uuids=max_uuids, cartodb_domain=self.cartodb_domain):
+                                try:
+                                    params = tile_params(user, uuid, self.cartodb_domain)
+                                    if params:
+                                        layers.append(params)
+                                    else:
+                                        log.warn("found no layer for %s %s", user, uuid)
+                                except RequestError as ex:
+                                    log.warn("faild to query tiler for %s %s: %s", user, uuid, ex)
+                        except RequestError as ex:
+                            log.warn("failed to get user uuids for user %s: %s", user, ex)
                         if not layers:
                             return
 
