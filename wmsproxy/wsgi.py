@@ -23,6 +23,7 @@ class WMSProxy(object):
     def __init__(self, config_cache, max_uuids_per_user=50):
         self.config_cache = config_cache
         self.max_uuids_per_user = max_uuids_per_user
+        self.logger = log
 
     def __call__(self, environ, start_response):
         req = Request(environ)
