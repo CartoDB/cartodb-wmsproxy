@@ -1,0 +1,14 @@
+services:
+  demo:
+
+globals:
+  cache:
+    base_dir: '/var/cache/mapproxy'
+    lock_dir: '/var/cache/mapproxy/locks'
+    tile_lock_dir: '/var/cache/mapproxy/tile_locks'
+  http:
+    ssl_ca_certs: '/etc/ssl/certs/ca-certificates.crt'
+
+grids:
+  webmercator:
+    num_levels: 22
