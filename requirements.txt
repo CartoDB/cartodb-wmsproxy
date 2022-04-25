@@ -1,2 +1,2 @@
-requests==2.2.1
+requests==2.4.0
 mapproxy>=1.7.1
